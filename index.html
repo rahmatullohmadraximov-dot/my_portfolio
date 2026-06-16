@@ -506,7 +506,10 @@
       <div class="avatar-wrap reveal">
         <div class="avatar-ring"></div>
         <div class="avatar">
-          <img src="/avatar.jpg.jpg" alt="Rahmatulloh Madraximov" />
+          <div class="ph">
+            <div class="ph-ic"></div>
+            <small>profile photo</small>
+          </div>
         </div>
         <div class="status"><span class="dot"></span><span data-i18n="hero.status">Available for projects</span></div>
       </div>
@@ -833,9 +836,7 @@
         el.style.transitionDelay = Math.min((i % 4) * 0.07, 0.21) + 's';
       });
       requestAnimationFrame(() => {
-        grid.querySelectorAll('.reveal').forEach(el => {
-          if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
-        });
+        grid.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
       });
     }
 
