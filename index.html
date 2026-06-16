@@ -40,6 +40,7 @@
     overflow-x: hidden;
     position: relative;
   }
+  body.modal-open { overflow: hidden; }
 
   /* ---------- Ambient background ---------- */
   .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
@@ -238,16 +239,19 @@
     display: flex; align-items: center; justify-content: center;
     border-bottom: 1px solid var(--border-soft);
   }
+  .project-thumb img { width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform 0.6s var(--ease); }
+  .project:hover .project-thumb img { transform: scale(1.04); }
   .project-thumb::after { content: ''; position: absolute; inset: 0;
     background: radial-gradient(circle at 70% 0%, oklch(0.6 0.18 292 / 0.18), transparent 55%);
-    opacity: 0; transition: opacity 0.4s; }
+    opacity: 0; transition: opacity 0.4s; pointer-events: none; }
   .project:hover .project-thumb::after { opacity: 1; }
   .thumb-label { font-family: 'Space Grotesk', monospace; font-size: 11px; letter-spacing: 0.1em;
     color: var(--muted-2); text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .thumb-label .box { width: 46px; height: 46px; border-radius: 12px; border: 1.5px dashed var(--muted-2); opacity: 0.55; }
   .project-num { position: absolute; top: 18px; left: 20px; font-family: 'Archivo', sans-serif;
     font-weight: 800; font-size: 13px; letter-spacing: 0.1em; color: var(--muted);
-    background: rgba(10,10,16,0.7); border: 1px solid var(--border); padding: 5px 11px; border-radius: 100px; backdrop-filter: blur(8px); }
+    background: rgba(10,10,16,0.7); border: 1px solid var(--border); padding: 5px 11px; border-radius: 100px; backdrop-filter: blur(8px); z-index: 2; }
   .project-body { padding: 24px 26px 26px; }
   .project-type { font-size: 12.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
     color: oklch(0.78 0.12 292); margin-bottom: 10px; }
@@ -259,6 +263,92 @@
   .project-link svg { width: 15px; height: 15px; transition: transform 0.3s var(--ease); }
   .project:hover .project-link { gap: 12px; }
   .project:hover .project-link svg { transform: translate(3px, -3px); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 5, 9, 0.78);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s var(--ease);
+    overflow-y: auto;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    width: 100%; max-width: 920px;
+    background: linear-gradient(180deg, #0e0e14, #09090d);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.4s var(--ease);
+    position: relative;
+    margin: auto;
+  }
+  .modal-overlay.open .modal { transform: none; }
+  .modal-close {
+    position: absolute; top: 18px; right: 18px; z-index: 10;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(10, 10, 16, 0.85); border: 1px solid var(--border);
+    color: var(--text); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+    transition: transform 0.25s var(--ease), border-color 0.25s, background 0.25s;
+  }
+  .modal-close:hover { transform: rotate(90deg); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+  .modal-close svg { width: 16px; height: 16px; }
+  .modal-cover {
+    width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+    background: #0a0a10;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 12px, transparent 12px 26px);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .modal-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .modal-body { padding: 36px clamp(24px, 4vw, 48px) 44px; }
+  .modal-type { font-size: 12.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: oklch(0.78 0.12 292); margin-bottom: 12px; }
+  .modal-title {
+    font-family: 'Archivo', sans-serif; font-weight: 800; font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 18px;
+  }
+  .modal-meta {
+    display: flex; gap: 28px; flex-wrap: wrap; padding: 18px 0;
+    border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 28px;
+  }
+  .modal-meta .item { display: flex; flex-direction: column; gap: 4px; }
+  .modal-meta .item .lbl { font-size: 11.5px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted-2); }
+  .modal-meta .item .val { font-size: 14.5px; font-weight: 500; color: var(--text); }
+  .modal-desc { color: #c9c9d2; font-size: 15.5px; line-height: 1.7; margin-bottom: 28px;
+    font-weight: 300; max-width: 720px; }
+  .modal-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .modal-tools span {
+    display: inline-flex; align-items: center; padding: 7px 14px; border-radius: 100px;
+    background: var(--panel-strong); border: 1px solid var(--border);
+    font-size: 13px; font-weight: 500; color: var(--text);
+  }
+  .modal-gallery { display: grid; gap: 14px; margin-bottom: 32px; }
+  .modal-gallery img { width: 100%; border-radius: 16px; border: 1px solid var(--border-soft);
+    display: block; }
+  .modal-link {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--text); color: #0a0a0e; font-weight: 600; font-size: 14.5px;
+    padding: 13px 24px; border-radius: 100px; text-decoration: none;
+    transition: transform 0.25s var(--ease), box-shadow 0.25s;
+  }
+  .modal-link:hover { transform: translateY(-2px); box-shadow: 0 14px 32px -12px rgba(255,255,255,0.4); }
+  .modal-link svg { width: 15px; height: 15px; }
+
+  @media (max-width: 600px) {
+    .modal-overlay { padding: 20px 14px; }
+    .modal-body { padding: 28px 22px 32px; }
+    .modal-meta { gap: 18px; }
+  }
 
   /* ---------- Services ---------- */
   .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -415,7 +505,6 @@
       <div class="avatar-wrap reveal">
         <div class="avatar-ring"></div>
         <div class="avatar">
-          <!-- Replace .ph with: <img src="your-photo.jpg" alt="Rahmatulloh Madraximov" /> -->
           <div class="ph">
             <div class="ph-ic"></div>
             <small>profile photo</small>
@@ -431,7 +520,7 @@
       <p class="lead reveal" data-i18n="hero.lead">I design clean and usable interfaces for mobile apps, web platforms, and digital products.</p>
 
       <div class="hero-btns reveal">
-        <a href="https://www.figma.com/design/RKexE3n9M04qKkF76OI39x/My-Portfolio" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><span data-i18n="hero.viewWorks">View works</span>
+        <a href="#works" class="btn btn-primary"><span data-i18n="hero.viewWorks">View works</span>
           <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <a href="#contact" class="btn btn-ghost" data-i18n="hero.contactMe">Contact me</a>
@@ -476,68 +565,8 @@
         <p class="section-sub" data-i18n="works.sub">A collection of mobile apps, web platforms and product design projects.</p>
       </div>
 
-      <div class="works-grid">
-        <!-- Project 01 -->
-        <article class="project reveal">
-          <div class="project-thumb">
-            <span class="project-num">01</span>
-            <span class="thumb-label"><span class="box"></span>mobile mockup</span>
-          </div>
-          <div class="project-body">
-            <div class="project-type" data-i18n="p1.type">Mobile App Design</div>
-            <h3 data-i18n="p1.name">Project 01</h3>
-            <p data-i18n="p1.desc">A clean mobile app interface focused on smooth flows and simple navigation.</p>
-            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-          </div>
-        </article>
-        <!-- Project 02 -->
-        <article class="project reveal">
-          <div class="project-thumb">
-            <span class="project-num">02</span>
-            <span class="thumb-label"><span class="box"></span>web mockup</span>
-          </div>
-          <div class="project-body">
-            <div class="project-type" data-i18n="p2.type">Web Platform Design</div>
-            <h3 data-i18n="p2.name">Project 02</h3>
-            <p data-i18n="p2.desc">A responsive web platform with a structured layout and clear hierarchy.</p>
-            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-          </div>
-        </article>
-        <!-- Project 03 -->
-        <article class="project reveal">
-          <div class="project-thumb">
-            <span class="project-num">03</span>
-            <span class="thumb-label"><span class="box"></span>marketplace mockup</span>
-          </div>
-          <div class="project-body">
-            <div class="project-type" data-i18n="p3.type">Marketplace Design</div>
-            <h3 data-i18n="p3.name">Project 03</h3>
-            <p data-i18n="p3.desc">A marketplace experience designed for fast browsing and easy checkout.</p>
-            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-          </div>
-        </article>
-        <!-- Project 04 -->
-        <article class="project reveal">
-          <div class="project-thumb">
-            <span class="project-num">04</span>
-            <span class="thumb-label"><span class="box"></span>landing mockup</span>
-          </div>
-          <div class="project-body">
-            <div class="project-type" data-i18n="p4.type">Landing Page Design</div>
-            <h3 data-i18n="p4.name">Project 04</h3>
-            <p data-i18n="p4.desc">A focused landing page built to convert with a bold, minimal layout.</p>
-            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-          </div>
-        </article>
-      </div>
+      <!-- Loyihalar avtomatik shu yerga qo'yiladi (JS dan) -->
+      <div class="works-grid" id="worksGrid"></div>
     </div>
   </section>
 
@@ -672,39 +701,275 @@
     </div>
   </footer>
 
+  <!-- ===== Project Modal ===== -->
+  <div class="modal-overlay" id="modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="modal-cover" id="modalCover"></div>
+      <div class="modal-body">
+        <div class="modal-type" id="modalType"></div>
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <div class="modal-meta" id="modalMeta"></div>
+        <p class="modal-desc" id="modalDesc"></p>
+        <div class="modal-tools" id="modalTools"></div>
+        <div class="modal-gallery" id="modalGallery"></div>
+        <a class="modal-link" id="modalLink" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+          <span data-i18n="modal.viewFull">View full project</span>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script>
+    /* =====================================================================
+       LOYIHALAR — SHU YERNI TAHRIR QILING
+       =====================================================================
+       Har bir loyiha uchun:
+       - cover: katta rasm (1 ta, asosiy)
+       - images: modal ichida ko'rinadigan qo'shimcha rasmlar (bo'sh ham bo'ladi)
+       - link: tashqi havola (Figma/Behance/Dribbble) — bo'sh qoldirsangiz tugma chiqmaydi
+       
+       Rasm qo'shishning eng oson yo'li:
+       1. Imgur.com ga rasm yuklang
+       2. "Copy image link" tugmasini bosing
+       3. URL'ni quyidagi cover/images ga qo'ying
+       ===================================================================== */
+
+    const PROJECTS = [
+      {
+        num: '01',
+        type: { en: 'Mobile App Design', uz: 'Mobil Ilova Dizayni' },
+        name: { en: 'Project Name 01', uz: 'Loyiha nomi 01' },
+        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
+        cover: '', // masalan: 'https://i.imgur.com/xxxxx.png'
+        images: [
+          // 'https://i.imgur.com/xxxxx.png',
+          // 'https://i.imgur.com/yyyyy.png',
+        ],
+        description: {
+          en: 'Longer description that appears inside the modal. Explain the problem, your approach, and the result.',
+          uz: "Modal ichida ko'rinadigan uzunroq tavsif. Muammo, yondashuv va natijani yozing."
+        },
+        year: '2025',
+        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
+        tools: ['Figma', 'FigJam'],
+        link: '' // masalan: 'https://figma.com/...' yoki bo'sh qoldiring
+      },
+      {
+        num: '02',
+        type: { en: 'Web Platform Design', uz: 'Veb Platforma Dizayni' },
+        name: { en: 'Project Name 02', uz: 'Loyiha nomi 02' },
+        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
+        cover: '',
+        images: [],
+        description: {
+          en: 'Longer description that appears inside the modal.',
+          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
+        },
+        year: '2025',
+        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
+        tools: ['Figma'],
+        link: ''
+      },
+      {
+        num: '03',
+        type: { en: 'Marketplace Design', uz: 'Marketpleys Dizayni' },
+        name: { en: 'Project Name 03', uz: 'Loyiha nomi 03' },
+        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
+        cover: '',
+        images: [],
+        description: {
+          en: 'Longer description that appears inside the modal.',
+          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
+        },
+        year: '2024',
+        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
+        tools: ['Figma', 'FigJam'],
+        link: ''
+      },
+      {
+        num: '04',
+        type: { en: 'Landing Page Design', uz: 'Landing Sahifa Dizayni' },
+        name: { en: 'Project Name 04', uz: 'Loyiha nomi 04' },
+        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
+        cover: '',
+        images: [],
+        description: {
+          en: 'Longer description that appears inside the modal.',
+          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
+        },
+        year: '2024',
+        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
+        tools: ['Figma'],
+        link: ''
+      },
+      {
+        num: '05',
+        type: { en: 'Dashboard Design', uz: 'Boshqaruv Paneli Dizayni' },
+        name: { en: 'Project Name 05', uz: 'Loyiha nomi 05' },
+        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
+        cover: '',
+        images: [],
+        description: {
+          en: 'Longer description that appears inside the modal.',
+          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
+        },
+        year: '2024',
+        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
+        tools: ['Figma'],
+        link: ''
+      }
+      // Yangi loyiha qo'shish uchun yuqoridagi { ... } blokini nusxalab, vergul (,) qo'ying
+    ];
+
+    /* =====================================================================
+       BUNDAN PASTGI KODNI TEGISH SHART EMAS
+       ===================================================================== */
+
     // Mobile nav toggle
     const burger = document.getElementById('burger');
     const nav = document.getElementById('nav');
     burger.addEventListener('click', () => nav.classList.toggle('open'));
     nav.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
 
-    // Scroll reveal — with robust fallbacks so content is NEVER stuck hidden
-    const reveals = [...document.querySelectorAll('.reveal')];
-    reveals.forEach((el, i) => { el.style.transitionDelay = Math.min(i % 4 * 0.07, 0.21) + 's'; });
-    const showAll = () => reveals.forEach(el => { el.style.transition = 'none'; el.classList.add('in'); });
+    // ---------- Render projects ----------
+    let currentLang = 'en';
 
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-      reveals.forEach(el => io.observe(el));
-      // Immediately reveal anything already in/above the viewport
-      const revealVisible = () => reveals.forEach(el => {
-        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
-      });
-      requestAnimationFrame(revealVisible);
-      window.addEventListener('load', revealVisible);
-      // Failsafe: if animations aren't painting (throttled/non-rendering env), force everything visible.
-      // Probe an above-fold element: if it never reaches full opacity, the environment isn't animating.
-      setTimeout(() => {
-        const probe = reveals.find(el => el.getBoundingClientRect().top < window.innerHeight);
-        const painting = probe && parseFloat(getComputedStyle(probe).opacity) > 0.5;
-        if (!painting) showAll();
-      }, 1100);
-    } else {
-      showAll();
+    function thumbHTML(p) {
+      if (p.cover) {
+        return `<img src="${p.cover}" alt="${p.name[currentLang] || p.name.en}" loading="lazy" />`;
+      }
+      return `<span class="thumb-label"><span class="box"></span>${p.type[currentLang] || p.type.en}</span>`;
     }
+
+    function renderProjects() {
+      const grid = document.getElementById('worksGrid');
+      grid.innerHTML = PROJECTS.map((p, i) => `
+        <article class="project reveal" data-index="${i}">
+          <div class="project-thumb">
+            <span class="project-num">${p.num}</span>
+            ${thumbHTML(p)}
+          </div>
+          <div class="project-body">
+            <div class="project-type">${p.type[currentLang] || p.type.en}</div>
+            <h3>${p.name[currentLang] || p.name.en}</h3>
+            <p>${p.short[currentLang] || p.short.en}</p>
+            <a href="#" class="project-link" onclick="event.preventDefault(); openModal(${i});">
+              <span>${currentLang === 'uz' ? "Loyihani ko'rish" : 'View project'}</span>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </article>
+      `).join('');
+
+      // Click on whole card
+      grid.querySelectorAll('.project').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.project-link')) return;
+          openModal(parseInt(card.dataset.index, 10));
+        });
+      });
+
+      // Reveal newly added cards
+      grid.querySelectorAll('.reveal').forEach((el, i) => {
+        el.style.transitionDelay = Math.min((i % 4) * 0.07, 0.21) + 's';
+      });
+      requestAnimationFrame(() => {
+        grid.querySelectorAll('.reveal').forEach(el => {
+          if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
+        });
+      });
+    }
+
+    // ---------- Modal ----------
+    const modal = document.getElementById('modal');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModal(index) {
+      const p = PROJECTS[index];
+      if (!p) return;
+
+      const cover = document.getElementById('modalCover');
+      cover.innerHTML = p.cover ? `<img src="${p.cover}" alt="${p.name[currentLang] || p.name.en}" />` : '';
+
+      document.getElementById('modalType').textContent = p.type[currentLang] || p.type.en;
+      document.getElementById('modalTitle').textContent = p.name[currentLang] || p.name.en;
+      document.getElementById('modalDesc').textContent = p.description[currentLang] || p.description.en;
+
+      const meta = document.getElementById('modalMeta');
+      const yearLbl = currentLang === 'uz' ? 'Yil' : 'Year';
+      const roleLbl = currentLang === 'uz' ? 'Rol' : 'Role';
+      meta.innerHTML = `
+        <div class="item"><span class="lbl">${yearLbl}</span><span class="val">${p.year}</span></div>
+        <div class="item"><span class="lbl">${roleLbl}</span><span class="val">${p.role[currentLang] || p.role.en}</span></div>
+      `;
+
+      const tools = document.getElementById('modalTools');
+      tools.innerHTML = (p.tools || []).map(t => `<span>${t}</span>`).join('');
+
+      const gallery = document.getElementById('modalGallery');
+      gallery.innerHTML = (p.images || []).map(src => `<img src="${src}" alt="" loading="lazy" />`).join('');
+
+      const link = document.getElementById('modalLink');
+      if (p.link) {
+        link.href = p.link;
+        link.style.display = 'inline-flex';
+        link.querySelector('span').textContent = currentLang === 'uz' ? "To'liq loyihani ko'rish" : 'View full project';
+      } else {
+        link.style.display = 'none';
+      }
+
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+      modal.scrollTop = 0;
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+
+    // Expose for inline onclick
+    window.openModal = openModal;
+
+    // Scroll reveal
+    const initReveal = () => {
+      const reveals = [...document.querySelectorAll('.reveal')];
+      reveals.forEach((el, i) => { if (!el.style.transitionDelay) el.style.transitionDelay = Math.min(i % 4 * 0.07, 0.21) + 's'; });
+      const showAll = () => reveals.forEach(el => { el.style.transition = 'none'; el.classList.add('in'); });
+
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(el => io.observe(el));
+        const revealVisible = () => reveals.forEach(el => {
+          if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
+        });
+        requestAnimationFrame(revealVisible);
+        window.addEventListener('load', revealVisible);
+        setTimeout(() => {
+          const probe = reveals.find(el => el.getBoundingClientRect().top < window.innerHeight);
+          const painting = probe && parseFloat(getComputedStyle(probe).opacity) > 0.5;
+          if (!painting) showAll();
+        }, 1100);
+      } else {
+        showAll();
+      }
+    };
 
     // Nav background shift on scroll
     const navEl = document.getElementById('nav');
@@ -712,7 +977,8 @@
       if (scrollY > 30) navEl.style.background = 'rgba(10,10,15,0.8)';
       else navEl.style.background = 'rgba(14,14,20,0.62)';
     });
-    // Barely-there cursor aura + water-ripple trail — disabled on touch & reduced-motion
+
+    // Cursor aura + ripples
     (function () {
       const aura = document.getElementById('cursorAura');
       const fine = matchMedia('(pointer: fine)').matches;
@@ -757,11 +1023,6 @@
         'quick.market.t': 'Marketplace', 'quick.market.d': 'End-to-end buyer & seller marketplace experiences.',
         'works.eyebrow': 'Selected Works', 'works.title': 'Selected Works',
         'works.sub': 'A collection of mobile apps, web platforms and product design projects.',
-        'p1.type': 'Mobile App Design', 'p1.name': 'Project 01', 'p1.desc': 'A clean mobile app interface focused on smooth flows and simple navigation.',
-        'p2.type': 'Web Platform Design', 'p2.name': 'Project 02', 'p2.desc': 'A responsive web platform with a structured layout and clear hierarchy.',
-        'p3.type': 'Marketplace Design', 'p3.name': 'Project 03', 'p3.desc': 'A marketplace experience designed for fast browsing and easy checkout.',
-        'p4.type': 'Landing Page Design', 'p4.name': 'Project 04', 'p4.desc': 'A focused landing page built to convert with a bold, minimal layout.',
-        'project.view': 'View project',
         'services.eyebrow': 'What I do', 'services.title': 'Services',
         's1.t': 'Mobile App Design', 's1.d': 'Native iOS & Android interfaces that feel effortless to use.',
         's2.t': 'Web Platform Design', 's2.d': 'Scalable, responsive interfaces for complex web products.',
@@ -797,11 +1058,6 @@
         'quick.market.t': 'Marketpleys', 'quick.market.d': "Xaridor va sotuvchi uchun to'liq marketpleys tajribasi.",
         'works.eyebrow': 'Tanlangan Ishlar', 'works.title': 'Tanlangan Ishlar',
         'works.sub': "Mobil ilovalar, veb-platformalar va mahsulot dizayni loyihalari to'plami.",
-        'p1.type': 'Mobil Ilova Dizayni', 'p1.name': 'Loyiha 01', 'p1.desc': 'Silliq oqim va sodda navigatsiyaga qaratilgan toza mobil ilova interfeysi.',
-        'p2.type': 'Veb Platforma Dizayni', 'p2.name': 'Loyiha 02', 'p2.desc': 'Tuzilgan tartib va aniq ierarxiyaga ega moslashuvchan veb platforma.',
-        'p3.type': 'Marketpleys Dizayni', 'p3.name': 'Loyiha 03', 'p3.desc': 'Tez ko\u2018rish va oson xaridga mo\u2018ljallangan marketpleys tajribasi.',
-        'p4.type': 'Landing Sahifa Dizayni', 'p4.name': 'Loyiha 04', 'p4.desc': 'Dadil va minimal tartib bilan natija beradigan landing sahifa.',
-        'project.view': "Loyihani ko'rish",
         'services.eyebrow': 'Men nima qilaman', 'services.title': 'Xizmatlar',
         's1.t': 'Mobil Ilova Dizayni', 's1.d': 'Foydalanish oson bo\u2018lgan iOS va Android interfeyslari.',
         's2.t': 'Veb Platforma Dizayni', 's2.d': 'Murakkab veb mahsulotlar uchun kengayuvchan interfeyslar.',
@@ -829,6 +1085,7 @@
 
     function setLang(lang) {
       if (!I18N[lang]) lang = 'en';
+      currentLang = lang;
       document.documentElement.lang = lang;
       const dict = I18N[lang];
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -838,18 +1095,15 @@
       });
       document.querySelectorAll('#lang button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
       try { localStorage.setItem('rm_lang', lang); } catch (e) {}
+      renderProjects();
     }
+
     let savedLang = 'en';
     try { if (localStorage.getItem('rm_lang') === 'uz') savedLang = 'uz'; } catch (e) {}
     setLang(savedLang);
     document.querySelectorAll('#lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+    initReveal();
   </script>
-  <template id="__bundler_thumbnail" data-bg-color="#07070b">
-    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
-      <rect width="1200" height="800" fill="#07070b"/>
-      <circle cx="240" cy="160" r="260" fill="#6d3bd1" opacity="0.35"/>
-      <text x="600" y="450" font-family="Archivo, sans-serif" font-weight="900" font-size="240" fill="#ededf2" text-anchor="middle">R<tspan fill="#9b7bff">M</tspan></text>
-    </svg>
-  </template>
 </body>
 </html>
