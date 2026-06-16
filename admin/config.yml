@@ -1,0 +1,99 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+locale: "en"
+
+collections:
+  - name: "site"
+    label: "Site Content"
+    files:
+      - name: "projects"
+        label: "Projects"
+        file: "content/projects.json"
+        format: "json"
+        fields:
+          - label: "Projects"
+            name: "projects"
+            widget: "list"
+            summary: "{{fields.num}} · {{fields.name_en}}"
+            fields:
+              - label: "Number"
+                name: "num"
+                widget: "string"
+                hint: "e.g. 01, 02, 03"
+
+              - label: "Type"
+                name: "type"
+                widget: "select"
+                options:
+                  - "Mobile App"
+                  - "Web Platform"
+                  - "Marketplace"
+                  - "Landing Page"
+                  - "Dashboard"
+                default: "Mobile App"
+
+              - label: "Name (English)"
+                name: "name_en"
+                widget: "string"
+
+              - label: "Name (O'zbek)"
+                name: "name_uz"
+                widget: "string"
+
+              - label: "Short description (English)"
+                name: "short_en"
+                widget: "string"
+                hint: "One sentence shown on the card"
+
+              - label: "Short description (O'zbek)"
+                name: "short_uz"
+                widget: "string"
+
+              - label: "Full description (English)"
+                name: "description_en"
+                widget: "text"
+                hint: "2-3 sentences shown inside the modal"
+
+              - label: "Full description (O'zbek)"
+                name: "description_uz"
+                widget: "text"
+
+              - label: "Year"
+                name: "year"
+                widget: "string"
+                default: "2025"
+
+              - label: "Cover image"
+                name: "cover"
+                widget: "image"
+                required: false
+
+              - label: "Gallery images"
+                name: "images"
+                widget: "list"
+                required: false
+                fields:
+                  - label: "Image"
+                    name: "src"
+                    widget: "image"
+
+              - label: "Tools"
+                name: "tools"
+                widget: "list"
+                default: ["Figma"]
+
+              - label: "External link"
+                name: "link"
+                widget: "string"
+                required: false
+                hint: "Figma/Behance URL (optional)"
+
+              - label: "Published"
+                name: "published"
+                widget: "boolean"
+                default: true
