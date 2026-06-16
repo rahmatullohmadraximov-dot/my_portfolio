@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
   :root {
     --bg: #07070b;
@@ -669,17 +670,17 @@
         <div class="inner">
           <h2 data-i18n="contact.title">Let's build something useful.</h2>
           <p data-i18n="contact.text">Have a project or idea? I'm open to selected freelance and product design opportunities.</p>
-<div class="contact-links">
-            <a href="https://t.me/Mrux_ui" target="_blank" rel="noopener noreferrer" class="clink tg">
+          <div class="contact-links">
+            <a href="#" class="clink tg">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.94 4.6 18.6 20.3c-.25 1.1-.9 1.37-1.83.86l-5.05-3.72-2.44 2.35c-.27.27-.5.5-1.02.5l.36-5.16 9.4-8.49c.4-.36-.09-.56-.63-.2L4.18 13.1l-5-1.56c-1.09-.34-1.1-1.09.23-1.61L20.54 2.7c.9-.34 1.69.2 1.4 1.9Z"/></svg>
               Telegram</a>
-            <a href="mailto:mruxui9070@gmail.com" class="clink">
+            <a href="#" class="clink">
               <svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="m3.5 6 8.5 6 8.5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Email</a>
-            <a href="https://www.behance.net/m_rahmatulloh" target="_blank" rel="noopener noreferrer" class="clink">
+            <a href="#" class="clink">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 7.5c-.5-1.8-2-3-3.8-3.2C16.6 4 12 4 12 4s-4.6 0-6.2.3C4 4.5 2.5 5.7 2 7.5 1.7 9 1.7 12 1.7 12s0 3 .3 4.5c.5 1.8 2 2.9 3.8 3.2C7.4 20 12 20 12 20s4.6 0 6.2-.3c1.8-.3 3.3-1.4 3.8-3.2.3-1.5.3-4.5.3-4.5s0-3-.3-4.5ZM10 15V9l5 3-5 3Z"/></svg>
               Behance</a>
-            <a href="https://www.linkedin.com/in/rahmatulloh-madraximov-20062426a/" target="_blank" rel="noopener noreferrer" class="clink">
+            <a href="#" class="clink">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 1 1-4-.02 2 2 0 0 1 4 .02ZM7 8.48H3V21h4V8.48Zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68Z"/></svg>
               LinkedIn</a>
           </div>
@@ -725,109 +726,66 @@
 
   <script>
     /* =====================================================================
-       LOYIHALAR — SHU YERNI TAHRIR QILING
-       =====================================================================
-       Har bir loyiha uchun:
-       - cover: katta rasm (1 ta, asosiy)
-       - images: modal ichida ko'rinadigan qo'shimcha rasmlar (bo'sh ham bo'ladi)
-       - link: tashqi havola (Figma/Behance/Dribbble) — bo'sh qoldirsangiz tugma chiqmaydi
-       
-       Rasm qo'shishning eng oson yo'li:
-       1. Imgur.com ga rasm yuklang
-       2. "Copy image link" tugmasini bosing
-       3. URL'ni quyidagi cover/images ga qo'ying
+       LOYIHALAR — Decap CMS orqali admin/ sahifasidan boshqariladi
        ===================================================================== */
 
-    const PROJECTS = [
-      {
-        num: '01',
-        type: { en: 'Mobile App Design', uz: 'Mobil Ilova Dizayni' },
-        name: { en: 'Project Name 01', uz: 'Loyiha nomi 01' },
-        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
-        cover: '', // masalan: 'https://i.imgur.com/xxxxx.png'
-        images: [
-          // 'https://i.imgur.com/xxxxx.png',
-          // 'https://i.imgur.com/yyyyy.png',
-        ],
-        description: {
-          en: 'Longer description that appears inside the modal. Explain the problem, your approach, and the result.',
-          uz: "Modal ichida ko'rinadigan uzunroq tavsif. Muammo, yondashuv va natijani yozing."
-        },
-        year: '2025',
+    let PROJECTS = [];
+
+    // Type mapping (bitta tanlovni 2 tilga aylantiradi)
+    const TYPE_MAP = {
+      'Mobile App':   { en: 'Mobile App Design',   uz: 'Mobil Ilova Dizayni' },
+      'Web Platform': { en: 'Web Platform Design', uz: 'Veb Platforma Dizayni' },
+      'Marketplace':  { en: 'Marketplace Design',  uz: 'Marketpleys Dizayni' },
+      'Landing Page': { en: 'Landing Page Design', uz: 'Landing Sahifa Dizayni' },
+      'Dashboard':    { en: 'Dashboard Design',    uz: 'Boshqaruv Paneli Dizayni' }
+    };
+
+    function normalizeProject(p) {
+      const type = p.type || 'Mobile App';
+      const typeLabels = TYPE_MAP[type] || { en: type, uz: type };
+      return {
+        num: p.num || '',
+        type: typeLabels,
+        name: { en: p.name_en || '', uz: p.name_uz || p.name_en || '' },
+        short: { en: p.short_en || '', uz: p.short_uz || p.short_en || '' },
+        description: { en: p.description_en || '', uz: p.description_uz || p.description_en || '' },
+        cover: p.cover || '',
+        images: Array.isArray(p.images) ? p.images.map(i => (typeof i === 'string' ? i : i.src)).filter(Boolean) : [],
+        year: p.year || '',
         role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
-        tools: ['Figma', 'FigJam'],
-        link: '' // masalan: 'https://figma.com/...' yoki bo'sh qoldiring
-      },
-      {
-        num: '02',
-        type: { en: 'Web Platform Design', uz: 'Veb Platforma Dizayni' },
-        name: { en: 'Project Name 02', uz: 'Loyiha nomi 02' },
-        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
-        cover: '',
-        images: [],
-        description: {
-          en: 'Longer description that appears inside the modal.',
-          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
-        },
-        year: '2025',
-        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
-        tools: ['Figma'],
-        link: ''
-      },
-      {
-        num: '03',
-        type: { en: 'Marketplace Design', uz: 'Marketpleys Dizayni' },
-        name: { en: 'Project Name 03', uz: 'Loyiha nomi 03' },
-        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
-        cover: '',
-        images: [],
-        description: {
-          en: 'Longer description that appears inside the modal.',
-          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
-        },
-        year: '2024',
-        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
-        tools: ['Figma', 'FigJam'],
-        link: ''
-      },
-      {
-        num: '04',
-        type: { en: 'Landing Page Design', uz: 'Landing Sahifa Dizayni' },
-        name: { en: 'Project Name 04', uz: 'Loyiha nomi 04' },
-        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
-        cover: '',
-        images: [],
-        description: {
-          en: 'Longer description that appears inside the modal.',
-          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
-        },
-        year: '2024',
-        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
-        tools: ['Figma'],
-        link: ''
-      },
-      {
-        num: '05',
-        type: { en: 'Dashboard Design', uz: 'Boshqaruv Paneli Dizayni' },
-        name: { en: 'Project Name 05', uz: 'Loyiha nomi 05' },
-        short: { en: 'Short description shown on the card.', uz: 'Kartochkada chiqadigan qisqa tavsif.' },
-        cover: '',
-        images: [],
-        description: {
-          en: 'Longer description that appears inside the modal.',
-          uz: "Modal ichida ko'rinadigan uzunroq tavsif."
-        },
-        year: '2024',
-        role: { en: 'UX/UI Designer', uz: 'UX/UI Dizayner' },
-        tools: ['Figma'],
-        link: ''
+        tools: Array.isArray(p.tools) ? p.tools : [],
+        link: p.link || ''
+      };
+    }
+
+    async function loadProjects() {
+      try {
+        const res = await fetch('/content/projects.json?t=' + Date.now());
+        if (!res.ok) throw new Error('Projects file not found');
+        const data = await res.json();
+        const raw = (data.projects || []).filter(p => p.published !== false);
+        PROJECTS = raw.map(normalizeProject);
+      } catch (e) {
+        console.warn('Could not load projects:', e);
+        PROJECTS = [];
       }
-      // Yangi loyiha qo'shish uchun yuqoridagi { ... } blokini nusxalab, vergul (,) qo'ying
-    ];
+      renderProjects();
+    }
 
     /* =====================================================================
        BUNDAN PASTGI KODNI TEGISH SHART EMAS
        ===================================================================== */
+
+    // Netlify Identity — login bo'lgach /admin ga yo'naltirish
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', user => {
+        if (!user) {
+          window.netlifyIdentity.on('login', () => {
+            document.location.href = '/admin/';
+          });
+        }
+      });
+    }
 
     // Mobile nav toggle
     const burger = document.getElementById('burger');
@@ -1102,6 +1060,9 @@
     try { if (localStorage.getItem('rm_lang') === 'uz') savedLang = 'uz'; } catch (e) {}
     setLang(savedLang);
     document.querySelectorAll('#lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+    // Loyihalarni serverdan yuklash
+    loadProjects();
 
     initReveal();
   </script>
