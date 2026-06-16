@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rahmatulloh Madraximov — UX/UI Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #07070b;
+    --bg-soft: #0c0c12;
+    --panel: rgba(255, 255, 255, 0.035);
+    --panel-strong: rgba(255, 255, 255, 0.055);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.05);
+    --text: #ededf2;
+    --muted: #8d8d99;
+    --muted-2: #6a6a76;
+    --accent: oklch(0.72 0.16 292);
+    --accent-2: oklch(0.74 0.13 232);
+    --accent-soft: oklch(0.72 0.16 292 / 0.14);
+    --radius: 22px;
+    --radius-lg: 30px;
+    --maxw: 1180px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 120px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ---------- Ambient background ---------- */
+  .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+  }
+  .glow.g1 { top: -260px; left: -180px; width: 720px; height: 720px;
+    background: radial-gradient(circle, oklch(0.55 0.2 292 / 0.55), transparent 65%); }
+  .glow.g2 { top: 320px; right: -240px; width: 640px; height: 640px;
+    background: radial-gradient(circle, oklch(0.55 0.16 232 / 0.32), transparent 65%); opacity: 0.4; }
+  .grid-overlay {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+  .noise { position: absolute; inset: 0; opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* Barely-there cursor aura + water-ripple trail — non-intrusive */
+  .cursor-aura {
+    position: fixed; top: 0; left: 0; width: 320px; height: 320px; z-index: 1;
+    margin: -160px 0 0 -160px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, oklch(0.62 0.19 292 / 0.07), transparent 60%);
+    opacity: 0; transition: opacity 0.9s ease; will-change: transform;
+  }
+  .cursor-aura.on { opacity: 1; }
+  .ripple {
+    position: fixed; z-index: 1; pointer-events: none; border-radius: 50%;
+    width: 12px; height: 12px; margin: -6px 0 0 -6px;
+    border: 1px solid oklch(0.72 0.16 292 / 0.26);
+    box-shadow: 0 0 0.5px oklch(0.72 0.16 292 / 0.2);
+    animation: rippleOut 2.2s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
+  }
+  @keyframes rippleOut {
+    0%   { transform: scale(0.35); opacity: 0; }
+    14%  { opacity: 0.5; }
+    100% { transform: scale(8.5); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .cursor-aura, .ripple { display: none; } }
+
+  /* Language toggle */
+  .lang { display: inline-flex; align-items: center; gap: 2px; padding: 3px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 100px; }
+  .lang button { border: none; background: none; cursor: pointer; color: var(--muted);
+    font-family: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 6px 11px; border-radius: 100px; transition: color 0.2s, background 0.2s; }
+  .lang button.active { background: var(--text); color: #0a0a0e; }
+  .lang button:not(.active):hover { color: var(--text); }
+
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 28px; position: relative; z-index: 2; }
+
+  /* ---------- Header ---------- */
+  header { position: fixed; top: 18px; left: 0; right: 0; z-index: 100; }
+  .nav {
+    max-width: 980px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px 12px 26px;
+    background: rgba(14, 14, 20, 0.62);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    box-shadow: 0 10px 40px -16px rgba(0,0,0,0.7);
+    transition: box-shadow 0.4s var(--ease), background 0.4s var(--ease);
+  }
+  .logo {
+    font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 21px;
+    letter-spacing: 0.5px; color: var(--text);
+    display: flex; align-items: center; gap: 2px; text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 6px; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 14.5px; font-weight: 500;
+    padding: 8px 15px; border-radius: 100px; transition: color 0.25s, background 0.25s;
+  }
+  .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .nav-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--text); color: #0a0a0e; font-weight: 600; font-size: 14.5px;
+    padding: 10px 20px; border-radius: 100px; text-decoration: none; border: none; cursor: pointer;
+    transition: transform 0.25s var(--ease), box-shadow 0.25s;
+  }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 26px -8px rgba(255,255,255,0.4); }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .burger { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+  .burger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+  .burger span + span { margin-top: 5px; }
+
+  /* ---------- Section primitives ---------- */
+  section { position: relative; z-index: 2; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: 12.5px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+  }
+  .eyebrow::before { content: ''; width: 26px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .section-head { max-width: 640px; margin-bottom: 56px; }
+  .section-title {
+    font-family: 'Archivo', sans-serif; font-weight: 800; line-height: 1.02;
+    font-size: clamp(34px, 5vw, 58px); letter-spacing: -0.02em; color: var(--text);
+  }
+  .section-sub { color: var(--muted); font-size: clamp(15px, 1.6vw, 18px); margin-top: 18px; max-width: 540px; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 188px 0 90px; text-align: center; }
+  .avatar-wrap { position: relative; width: 132px; height: 132px; margin: 0 auto 30px; }
+  .avatar-ring { position: absolute; inset: -7px; border-radius: 50%;
+    background: conic-gradient(from 140deg, var(--accent), var(--accent-2), transparent 70%, var(--accent));
+    filter: blur(2px); opacity: 0.85; animation: spin 14s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .avatar {
+    position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.12); background: var(--bg-soft);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ph {
+    width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.045) 0 9px, transparent 9px 18px);
+    background-color: rgba(255,255,255,0.02);
+  }
+  .ph .ph-ic { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--muted-2); }
+  .ph small { font-family: 'Space Grotesk', monospace; font-size: 9.5px; letter-spacing: 0.06em; color: var(--muted-2); text-transform: uppercase; }
+  .status {
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    background: rgba(14,14,20,0.9); border: 1px solid var(--border);
+    padding: 6px 13px; border-radius: 100px; font-size: 12px; font-weight: 500;
+    backdrop-filter: blur(10px); box-shadow: 0 6px 20px -8px rgba(0,0,0,0.8);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: oklch(0.78 0.16 152); position: relative; }
+  .dot::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; background: oklch(0.78 0.16 152 / 0.4); animation: pulse 2s ease-out infinite; }
+  @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(2.2); opacity: 0; } }
+
+  .hero h1 {
+    font-family: 'Archivo', sans-serif; font-weight: 900; letter-spacing: -0.03em;
+    font-size: clamp(44px, 8.5vw, 104px); line-height: 0.95; margin: 6px 0 0;
+    background: linear-gradient(180deg, #ffffff 30%, #b6b6c4 130%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero .role {
+    font-family: 'Archivo', sans-serif; font-weight: 700; font-size: clamp(16px, 2.4vw, 24px);
+    letter-spacing: 0.01em; color: var(--text); margin-top: 22px;
+    display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+  }
+  .hero .role .sep { color: var(--accent); }
+  .hero p.lead { color: var(--muted); font-size: clamp(15px, 1.7vw, 18.5px); max-width: 560px; margin: 22px auto 0; }
+  .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 38px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; font-size: 15px;
+    padding: 14px 26px; border-radius: 100px; text-decoration: none; cursor: pointer; border: 1px solid transparent;
+    transition: transform 0.25s var(--ease), box-shadow 0.25s, background 0.25s, border-color 0.25s; }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-primary { background: var(--text); color: #0a0a0e; box-shadow: 0 10px 30px -12px rgba(255,255,255,0.45); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -12px rgba(255,255,255,0.55); }
+  .btn-ghost { background: var(--panel-strong); color: var(--text); border-color: var(--border); backdrop-filter: blur(10px); }
+  .btn-ghost:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); }
+
+  /* ---------- Quick info ---------- */
+  .quick { padding: 30px 0 40px; }
+  .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .qcard {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px 24px; display: flex; flex-direction: column; gap: 14px;
+    transition: transform 0.35s var(--ease), border-color 0.35s, background 0.35s;
+  }
+  .qcard:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.16); background: var(--panel-strong); }
+  .qicon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); border: 1px solid oklch(0.72 0.16 292 / 0.25); color: oklch(0.82 0.12 292); }
+  .qicon svg { width: 20px; height: 20px; }
+  .qcard h3 { font-size: 16.5px; font-weight: 600; }
+  .qcard p { font-size: 13px; color: var(--muted); margin-top: -8px; }
+
+  /* ---------- Section spacing ---------- */
+  .block { padding: 96px 0; }
+
+  /* ---------- Works ---------- */
+  .works-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .project {
+    position: relative; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--panel); overflow: hidden; cursor: pointer;
+    transition: transform 0.4s var(--ease), border-color 0.4s, box-shadow 0.4s;
+  }
+  .project:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,0.8); }
+  .project-thumb {
+    aspect-ratio: 16 / 10; position: relative; overflow: hidden;
+    background-color: #0a0a10;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 12px, transparent 12px 26px);
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .project-thumb::after { content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 70% 0%, oklch(0.6 0.18 292 / 0.18), transparent 55%);
+    opacity: 0; transition: opacity 0.4s; }
+  .project:hover .project-thumb::after { opacity: 1; }
+  .thumb-label { font-family: 'Space Grotesk', monospace; font-size: 11px; letter-spacing: 0.1em;
+    color: var(--muted-2); text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .thumb-label .box { width: 46px; height: 46px; border-radius: 12px; border: 1.5px dashed var(--muted-2); opacity: 0.55; }
+  .project-num { position: absolute; top: 18px; left: 20px; font-family: 'Archivo', sans-serif;
+    font-weight: 800; font-size: 13px; letter-spacing: 0.1em; color: var(--muted);
+    background: rgba(10,10,16,0.7); border: 1px solid var(--border); padding: 5px 11px; border-radius: 100px; backdrop-filter: blur(8px); }
+  .project-body { padding: 24px 26px 26px; }
+  .project-type { font-size: 12.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: oklch(0.78 0.12 292); margin-bottom: 10px; }
+  .project-body h3 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 23px; letter-spacing: -0.01em; }
+  .project-body p { color: var(--muted); font-size: 14.5px; margin-top: 10px; max-width: 90%; }
+  .project-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px;
+    font-size: 14px; font-weight: 600; color: var(--text); text-decoration: none;
+    transition: gap 0.3s var(--ease); }
+  .project-link svg { width: 15px; height: 15px; transition: transform 0.3s var(--ease); }
+  .project:hover .project-link { gap: 12px; }
+  .project:hover .project-link svg { transform: translate(3px, -3px); }
+
+  /* ---------- Services ---------- */
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .service {
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 26px;
+    background: var(--panel); transition: transform 0.35s var(--ease), border-color 0.35s, background 0.35s;
+    position: relative; overflow: hidden;
+  }
+  .service::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(0.72 0.16 292 / 0.5), transparent);
+    opacity: 0; transition: opacity 0.4s; }
+  .service:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.16); background: var(--panel-strong); }
+  .service:hover::before { opacity: 1; }
+  .service-ic { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text); margin-bottom: 20px; }
+  .service-ic svg { width: 21px; height: 21px; }
+  .service h3 { font-size: 18.5px; font-weight: 600; margin-bottom: 8px; }
+  .service p { color: var(--muted); font-size: 14px; }
+
+  /* ---------- Process ---------- */
+  .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--border); }
+  .step { padding: 36px 26px 36px 0; border-right: 1px solid var(--border); position: relative; }
+  .step:last-child { border-right: none; padding-right: 0; }
+  .step-num { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 15px; color: var(--accent); letter-spacing: 0.1em; }
+  .step h3 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 24px; margin: 18px 0 12px; letter-spacing: -0.01em; }
+  .step p { color: var(--muted); font-size: 14.5px; max-width: 90%; }
+  .step .line { position: absolute; top: -1px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.6s var(--ease); }
+  .step:hover .line { width: 60%; }
+
+  /* ---------- About + Tools ---------- */
+  .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; align-items: center; }
+  .about-text p { font-size: clamp(18px, 2.2vw, 24px); line-height: 1.6; color: #c9c9d2; font-weight: 300; letter-spacing: -0.01em; }
+  .about-text p strong { color: var(--text); font-weight: 600; }
+  .about-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 36px; }
+  .about-meta .m { border: 1px solid var(--border); border-radius: 16px; padding: 20px; background: var(--panel); }
+  .about-meta .m .big { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 30px; }
+  .about-meta .m .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .tools-panel { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 34px; background: var(--panel); }
+  .tools-panel .eyebrow { margin-bottom: 24px; }
+  .tools-list { display: flex; flex-direction: column; gap: 4px; }
+  .tool { display: flex; align-items: center; gap: 16px; padding: 16px 8px; border-bottom: 1px solid var(--border-soft); transition: padding 0.3s var(--ease); }
+  .tool:last-child { border-bottom: none; }
+  .tool:hover { padding-left: 16px; }
+  .tool .tdot { width: 8px; height: 8px; border-radius: 3px; background: var(--accent); flex-shrink: 0; }
+  .tool .tname { font-weight: 500; font-size: 16px; }
+  .tool .tmeta { margin-left: auto; font-size: 13px; color: var(--muted-2); font-family: 'Space Grotesk', monospace; }
+
+  /* ---------- Contact ---------- */
+  .contact { padding: 30px 0 110px; }
+  .contact-card {
+    border: 1px solid var(--border); border-radius: 36px; padding: clamp(40px, 6vw, 80px) clamp(28px, 5vw, 70px);
+    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    position: relative; overflow: hidden; text-align: center;
+  }
+  .contact-card::before { content: ''; position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 360px; background: radial-gradient(ellipse, oklch(0.55 0.2 292 / 0.35), transparent 65%); filter: blur(40px); }
+  .contact-card .inner { position: relative; z-index: 2; }
+  .contact-card h2 { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: clamp(32px, 5.5vw, 62px);
+    line-height: 1.02; letter-spacing: -0.025em; max-width: 700px; margin: 0 auto; }
+  .contact-card p { color: var(--muted); font-size: clamp(15px, 1.8vw, 18.5px); max-width: 480px; margin: 22px auto 0; }
+  .contact-links { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 40px; }
+  .clink { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 100px;
+    border: 1px solid var(--border); background: rgba(10,10,16,0.4); color: var(--text); text-decoration: none;
+    font-weight: 500; font-size: 15px; transition: transform 0.25s var(--ease), border-color 0.25s, background 0.25s; }
+  .clink svg { width: 17px; height: 17px; }
+  .clink:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+  .clink.tg:hover { border-color: oklch(0.7 0.13 232 / 0.6); }
+
+  /* ---------- Footer ---------- */
+  footer { border-top: 1px solid var(--border); padding: 34px 0; position: relative; z-index: 2; }
+  .foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .foot .logo { font-size: 18px; }
+  .foot p { color: var(--muted-2); font-size: 13.5px; }
+  .foot .up { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.25s; }
+  .foot .up:hover { color: var(--text); }
+
+  /* ---------- Reveal animation ---------- */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .avatar-ring { animation: none; }
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 940px) {
+    .quick-grid { grid-template-columns: repeat(2, 1fr); }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .process-grid { grid-template-columns: repeat(2, 1fr); }
+    .step { border-bottom: 1px solid var(--border); }
+    .step:nth-child(2) { border-right: none; }
+    .about-grid { grid-template-columns: 1fr; gap: 44px; }
+  }
+  @media (max-width: 760px) {
+    .nav-links, .nav-cta { display: none; }
+    .nav.open .nav-links { display: flex; }
+    .burger { display: block; }
+    .nav { flex-wrap: wrap; padding: 14px 18px; border-radius: 26px; }
+    .nav.open { gap: 10px; }
+    .nav.open .nav-links { flex-direction: column; align-items: stretch; width: 100%; gap: 2px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .nav.open .nav-links a { padding: 12px 14px; }
+    .hero { padding: 150px 0 60px; }
+    .works-grid { grid-template-columns: 1fr; }
+    .block { padding: 70px 0; }
+  }
+  @media (max-width: 480px) {
+    .wrap { padding: 0 18px; }
+    .quick-grid { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .process-grid { grid-template-columns: 1fr; }
+    .step { border-right: none; padding: 28px 0; }
+    .about-meta { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg-layer">
+    <div class="glow g1"></div>
+    <div class="glow g2"></div>
+    <div class="grid-overlay"></div>
+    <div class="noise"></div>
+  </div>
+  <div class="cursor-aura" id="cursorAura" aria-hidden="true"></div>
+
+  <!-- ===== Header ===== -->
+  <header>
+    <div class="wrap">
+      <nav class="nav" id="nav">
+        <a href="#top" class="logo">R<span>M</span></a>
+        <div class="nav-links">
+          <a href="#works" data-i18n="nav.works">Works</a>
+          <a href="#services" data-i18n="nav.services">Services</a>
+          <a href="#process" data-i18n="nav.process">Process</a>
+          <a href="#about" data-i18n="nav.about">About</a>
+          <a href="#contact" data-i18n="nav.contact">Contact</a>
+        </div>
+        <div class="nav-right">
+          <div class="lang" id="lang">
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="uz">UZ</button>
+          </div>
+          <a href="#contact" class="nav-cta"><span data-i18n="nav.cta">Let's talk</span>
+            <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div class="avatar-wrap reveal">
+        <div class="avatar-ring"></div>
+        <div class="avatar">
+          <!-- Replace .ph with: <img src="your-photo.jpg" alt="Rahmatulloh Madraximov" /> -->
+          <div class="ph">
+            <div class="ph-ic"></div>
+            <small>profile photo</small>
+          </div>
+        </div>
+        <div class="status"><span class="dot"></span><span data-i18n="hero.status">Available for projects</span></div>
+      </div>
+
+      <h1 class="reveal">Rahmatulloh<br>Madraximov</h1>
+
+      <div class="role reveal" data-i18n="hero.role">UX/UI Designer</div>
+
+      <p class="lead reveal" data-i18n="hero.lead">I design clean and usable interfaces for mobile apps, web platforms, and digital products.</p>
+
+      <div class="hero-btns reveal">
+        <a href="https://www.figma.com/design/RKexE3n9M04qKkF76OI39x/My-Portfolio" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><span data-i18n="hero.viewWorks">View works</span>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#contact" class="btn btn-ghost" data-i18n="hero.contactMe">Contact me</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Quick info ===== -->
+  <section class="quick">
+    <div class="wrap">
+      <div class="quick-grid">
+        <div class="qcard reveal">
+          <div class="qicon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="1.7"/></svg></div>
+          <h3 data-i18n="quick.ux.t">UX/UI Design</h3>
+          <p data-i18n="quick.ux.d">Clear structure, useful and consistent interfaces.</p>
+        </div>
+        <div class="qcard reveal">
+          <div class="qicon"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="2" width="12" height="20" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="quick.mobile.t">Mobile App</h3>
+          <p data-i18n="quick.mobile.d">iOS & Android product flows from zero to launch.</p>
+        </div>
+        <div class="qcard reveal">
+          <div class="qicon"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M2 9h20M8 22h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="quick.web.t">Web Platform</h3>
+          <p data-i18n="quick.web.d">Responsive dashboards and complex web products.</p>
+        </div>
+        <div class="qcard reveal">
+          <div class="qicon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9l1-4h16l1 4M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 13h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="quick.market.t">Marketplace</h3>
+          <p data-i18n="quick.market.d">End-to-end buyer & seller marketplace experiences.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Selected Works ===== -->
+  <section class="block" id="works">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" data-i18n="works.eyebrow">Selected Works</span>
+        <h2 class="section-title" data-i18n="works.title">Selected Works</h2>
+        <p class="section-sub" data-i18n="works.sub">A collection of mobile apps, web platforms and product design projects.</p>
+      </div>
+
+      <div class="works-grid">
+        <!-- Project 01 -->
+        <article class="project reveal">
+          <div class="project-thumb">
+            <span class="project-num">01</span>
+            <span class="thumb-label"><span class="box"></span>mobile mockup</span>
+          </div>
+          <div class="project-body">
+            <div class="project-type" data-i18n="p1.type">Mobile App Design</div>
+            <h3 data-i18n="p1.name">Project 01</h3>
+            <p data-i18n="p1.desc">A clean mobile app interface focused on smooth flows and simple navigation.</p>
+            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </article>
+        <!-- Project 02 -->
+        <article class="project reveal">
+          <div class="project-thumb">
+            <span class="project-num">02</span>
+            <span class="thumb-label"><span class="box"></span>web mockup</span>
+          </div>
+          <div class="project-body">
+            <div class="project-type" data-i18n="p2.type">Web Platform Design</div>
+            <h3 data-i18n="p2.name">Project 02</h3>
+            <p data-i18n="p2.desc">A responsive web platform with a structured layout and clear hierarchy.</p>
+            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </article>
+        <!-- Project 03 -->
+        <article class="project reveal">
+          <div class="project-thumb">
+            <span class="project-num">03</span>
+            <span class="thumb-label"><span class="box"></span>marketplace mockup</span>
+          </div>
+          <div class="project-body">
+            <div class="project-type" data-i18n="p3.type">Marketplace Design</div>
+            <h3 data-i18n="p3.name">Project 03</h3>
+            <p data-i18n="p3.desc">A marketplace experience designed for fast browsing and easy checkout.</p>
+            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </article>
+        <!-- Project 04 -->
+        <article class="project reveal">
+          <div class="project-thumb">
+            <span class="project-num">04</span>
+            <span class="thumb-label"><span class="box"></span>landing mockup</span>
+          </div>
+          <div class="project-body">
+            <div class="project-type" data-i18n="p4.type">Landing Page Design</div>
+            <h3 data-i18n="p4.name">Project 04</h3>
+            <p data-i18n="p4.desc">A focused landing page built to convert with a bold, minimal layout.</p>
+            <a href="#" class="project-link"><span data-i18n="project.view">View project</span>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Services ===== -->
+  <section class="block" id="services">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" data-i18n="services.eyebrow">What I do</span>
+        <h2 class="section-title" data-i18n="services.title">Services</h2>
+      </div>
+      <div class="services-grid">
+        <div class="service reveal">
+          <div class="service-ic"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="2" width="12" height="20" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="s1.t">Mobile App Design</h3>
+          <p data-i18n="s1.d">Native iOS & Android interfaces that feel effortless to use.</p>
+        </div>
+        <div class="service reveal">
+          <div class="service-ic"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M2 9h20" stroke="currentColor" stroke-width="1.7"/></svg></div>
+          <h3 data-i18n="s2.t">Web Platform Design</h3>
+          <p data-i18n="s2.d">Scalable, responsive interfaces for complex web products.</p>
+        </div>
+        <div class="service reveal">
+          <div class="service-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v6H4zM4 14h16v6H4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+          <h3 data-i18n="s3.t">Landing Page Design</h3>
+          <p data-i18n="s3.d">High-impact pages designed to convert and tell a story.</p>
+        </div>
+        <div class="service reveal">
+          <div class="service-ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="3" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13" y="11" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="15" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg></div>
+          <h3 data-i18n="s4.t">Dashboard Design</h3>
+          <p data-i18n="s4.d">Data-dense dashboards that stay clear and readable.</p>
+        </div>
+        <div class="service reveal">
+          <div class="service-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9l1-4h16l1 4M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+          <h3 data-i18n="s5.t">Marketplace UX/UI</h3>
+          <p data-i18n="s5.d">Buyer & seller flows tuned for trust and conversion.</p>
+        </div>
+        <div class="service reveal">
+          <div class="service-ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <h3 data-i18n="s6.t">UX Audit</h3>
+          <p data-i18n="s6.d">Spot friction and fix what gets in the user's way.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Process ===== -->
+  <section class="block" id="process">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" data-i18n="process.eyebrow">How I work</span>
+        <h2 class="section-title" data-i18n="process.title">Process</h2>
+      </div>
+      <div class="process-grid">
+        <div class="step reveal"><div class="line"></div>
+          <div class="step-num">01</div><h3 data-i18n="step1.t">Understand</h3><p data-i18n="step1.d">Goal, users and product logic.</p>
+        </div>
+        <div class="step reveal"><div class="line"></div>
+          <div class="step-num">02</div><h3 data-i18n="step2.t">Structure</h3><p data-i18n="step2.d">Pages, flows and wireframes.</p>
+        </div>
+        <div class="step reveal"><div class="line"></div>
+          <div class="step-num">03</div><h3 data-i18n="step3.t">Design</h3><p data-i18n="step3.d">UI screens and components.</p>
+        </div>
+        <div class="step reveal"><div class="line"></div>
+          <div class="step-num">04</div><h3 data-i18n="step4.t">Handoff</h3><p data-i18n="step4.d">Prototype and developer-ready files.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== About + Tools ===== -->
+  <section class="block" id="about">
+    <div class="wrap">
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <span class="eyebrow" data-i18n="about.eyebrow">About me</span>
+          <p data-i18n="about.text" data-i18n-html>I'm a UX/UI Designer focused on creating <strong>clean, practical and user-friendly</strong> interfaces. I work mainly with mobile apps, web platforms and marketplace products. My approach is simple: <strong>clear structure, useful design and a consistent visual system.</strong></p>
+          <div class="about-meta">
+            <div class="m"><div class="big" data-i18n="about.m1.big">Mobile</div><div class="lbl" data-i18n="about.m1.lbl">Apps & product flows</div></div>
+            <div class="m"><div class="big" data-i18n="about.m2.big">Web</div><div class="lbl" data-i18n="about.m2.lbl">Platforms & dashboards</div></div>
+          </div>
+        </div>
+        <div class="tools-panel reveal">
+          <span class="eyebrow" data-i18n="tools.eyebrow">Tools I use</span>
+          <div class="tools-list">
+            <div class="tool"><span class="tdot"></span><span class="tname">Figma</span><span class="tmeta" data-i18n="tool1.meta">UI / Prototype</span></div>
+            <div class="tool"><span class="tdot"></span><span class="tname">FigJam</span><span class="tmeta" data-i18n="tool2.meta">Flows / Wireframe</span></div>
+            <div class="tool"><span class="tdot"></span><span class="tname">Framer</span><span class="tmeta" data-i18n="tool3.meta">Web / Motion</span></div>
+            <div class="tool"><span class="tdot"></span><span class="tname">Notion</span><span class="tmeta" data-i18n="tool4.meta">Docs / Planning</span></div>
+            <div class="tool"><span class="tdot"></span><span class="tname">Adobe Photoshop</span><span class="tmeta" data-i18n="tool5.meta">Assets / Edit</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Contact ===== -->
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <div class="contact-card reveal">
+        <div class="inner">
+          <h2 data-i18n="contact.title">Let's build something useful.</h2>
+          <p data-i18n="contact.text">Have a project or idea? I'm open to selected freelance and product design opportunities.</p>
+          <div class="contact-links">
+            <a href="#" class="clink tg">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.94 4.6 18.6 20.3c-.25 1.1-.9 1.37-1.83.86l-5.05-3.72-2.44 2.35c-.27.27-.5.5-1.02.5l.36-5.16 9.4-8.49c.4-.36-.09-.56-.63-.2L4.18 13.1l-5-1.56c-1.09-.34-1.1-1.09.23-1.61L20.54 2.7c.9-.34 1.69.2 1.4 1.9Z"/></svg>
+              Telegram</a>
+            <a href="#" class="clink">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="m3.5 6 8.5 6 8.5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Email</a>
+            <a href="#" class="clink">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 7.5c-.5-1.8-2-3-3.8-3.2C16.6 4 12 4 12 4s-4.6 0-6.2.3C4 4.5 2.5 5.7 2 7.5 1.7 9 1.7 12 1.7 12s0 3 .3 4.5c.5 1.8 2 2.9 3.8 3.2C7.4 20 12 20 12 20s4.6 0 6.2-.3c1.8-.3 3.3-1.4 3.8-3.2.3-1.5.3-4.5.3-4.5s0-3-.3-4.5ZM10 15V9l5 3-5 3Z"/></svg>
+              Behance</a>
+            <a href="#" class="clink">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 1 1-4-.02 2 2 0 0 1 4 .02ZM7 8.48H3V21h4V8.48Zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68Z"/></svg>
+              LinkedIn</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <a href="#top" class="logo">R<span>M</span></a>
+        <p data-i18n="footer.copy">© 2026 Rahmatulloh Madraximov — UX/UI Designer</p>
+        <a href="#top" class="up"><span data-i18n="footer.up">Back to top</span>
+          <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    const burger = document.getElementById('burger');
+    const nav = document.getElementById('nav');
+    burger.addEventListener('click', () => nav.classList.toggle('open'));
+    nav.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
+
+    // Scroll reveal — with robust fallbacks so content is NEVER stuck hidden
+    const reveals = [...document.querySelectorAll('.reveal')];
+    reveals.forEach((el, i) => { el.style.transitionDelay = Math.min(i % 4 * 0.07, 0.21) + 's'; });
+    const showAll = () => reveals.forEach(el => { el.style.transition = 'none'; el.classList.add('in'); });
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+      reveals.forEach(el => io.observe(el));
+      // Immediately reveal anything already in/above the viewport
+      const revealVisible = () => reveals.forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
+      });
+      requestAnimationFrame(revealVisible);
+      window.addEventListener('load', revealVisible);
+      // Failsafe: if animations aren't painting (throttled/non-rendering env), force everything visible.
+      // Probe an above-fold element: if it never reaches full opacity, the environment isn't animating.
+      setTimeout(() => {
+        const probe = reveals.find(el => el.getBoundingClientRect().top < window.innerHeight);
+        const painting = probe && parseFloat(getComputedStyle(probe).opacity) > 0.5;
+        if (!painting) showAll();
+      }, 1100);
+    } else {
+      showAll();
+    }
+
+    // Nav background shift on scroll
+    const navEl = document.getElementById('nav');
+    addEventListener('scroll', () => {
+      if (scrollY > 30) navEl.style.background = 'rgba(10,10,15,0.8)';
+      else navEl.style.background = 'rgba(14,14,20,0.62)';
+    });
+    // Barely-there cursor aura + water-ripple trail — disabled on touch & reduced-motion
+    (function () {
+      const aura = document.getElementById('cursorAura');
+      const fine = matchMedia('(pointer: fine)').matches;
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!aura || !fine || reduce) return;
+      let tx = innerWidth / 2, ty = innerHeight / 2, x = tx, y = ty, active = false;
+      let lastX = tx, lastY = ty, lastT = 0;
+      function ripple(px, py) {
+        const r = document.createElement('div');
+        r.className = 'ripple';
+        r.style.left = px + 'px'; r.style.top = py + 'px';
+        document.body.appendChild(r);
+        r.addEventListener('animationend', () => r.remove());
+        setTimeout(() => r.remove(), 2600);
+      }
+      addEventListener('pointermove', (e) => {
+        tx = e.clientX; ty = e.clientY;
+        if (!active) { active = true; x = tx; y = ty; aura.classList.add('on'); }
+        const d = Math.hypot(tx - lastX, ty - lastY), now = performance.now();
+        if (d > 46 && now - lastT > 95) { ripple(tx, ty); lastX = tx; lastY = ty; lastT = now; }
+      }, { passive: true });
+      addEventListener('pointerdown', (e) => ripple(e.clientX, e.clientY));
+      addEventListener('pointerleave', () => aura.classList.remove('on'));
+      (function loop() {
+        x += (tx - x) * 0.1; y += (ty - y) * 0.1;
+        aura.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    // ---------- Bilingual: English / O'zbek ----------
+    const I18N = {
+      en: {
+        'nav.works': 'Works', 'nav.services': 'Services', 'nav.process': 'Process',
+        'nav.about': 'About', 'nav.contact': 'Contact', 'nav.cta': "Let's talk",
+        'hero.status': 'Available for projects', 'hero.role': 'UX/UI Designer',
+        'hero.lead': 'I design clean and usable interfaces for mobile apps, web platforms, and digital products.',
+        'hero.viewWorks': 'View works', 'hero.contactMe': 'Contact me',
+        'quick.ux.t': 'UX/UI Design', 'quick.ux.d': 'Clear structure, useful and consistent interfaces.',
+        'quick.mobile.t': 'Mobile App', 'quick.mobile.d': 'iOS & Android product flows from zero to launch.',
+        'quick.web.t': 'Web Platform', 'quick.web.d': 'Responsive dashboards and complex web products.',
+        'quick.market.t': 'Marketplace', 'quick.market.d': 'End-to-end buyer & seller marketplace experiences.',
+        'works.eyebrow': 'Selected Works', 'works.title': 'Selected Works',
+        'works.sub': 'A collection of mobile apps, web platforms and product design projects.',
+        'p1.type': 'Mobile App Design', 'p1.name': 'Project 01', 'p1.desc': 'A clean mobile app interface focused on smooth flows and simple navigation.',
+        'p2.type': 'Web Platform Design', 'p2.name': 'Project 02', 'p2.desc': 'A responsive web platform with a structured layout and clear hierarchy.',
+        'p3.type': 'Marketplace Design', 'p3.name': 'Project 03', 'p3.desc': 'A marketplace experience designed for fast browsing and easy checkout.',
+        'p4.type': 'Landing Page Design', 'p4.name': 'Project 04', 'p4.desc': 'A focused landing page built to convert with a bold, minimal layout.',
+        'project.view': 'View project',
+        'services.eyebrow': 'What I do', 'services.title': 'Services',
+        's1.t': 'Mobile App Design', 's1.d': 'Native iOS & Android interfaces that feel effortless to use.',
+        's2.t': 'Web Platform Design', 's2.d': 'Scalable, responsive interfaces for complex web products.',
+        's3.t': 'Landing Page Design', 's3.d': 'High-impact pages designed to convert and tell a story.',
+        's4.t': 'Dashboard Design', 's4.d': 'Data-dense dashboards that stay clear and readable.',
+        's5.t': 'Marketplace UX/UI', 's5.d': 'Buyer & seller flows tuned for trust and conversion.',
+        's6.t': 'UX Audit', 's6.d': "Spot friction and fix what gets in the user's way.",
+        'process.eyebrow': 'How I work', 'process.title': 'Process',
+        'step1.t': 'Understand', 'step1.d': 'Goal, users and product logic.',
+        'step2.t': 'Structure', 'step2.d': 'Pages, flows and wireframes.',
+        'step3.t': 'Design', 'step3.d': 'UI screens and components.',
+        'step4.t': 'Handoff', 'step4.d': 'Prototype and developer-ready files.',
+        'about.eyebrow': 'About me',
+        'about.text': "I'm a UX/UI Designer focused on creating <strong>clean, practical and user-friendly</strong> interfaces. I work mainly with mobile apps, web platforms and marketplace products. My approach is simple: <strong>clear structure, useful design and a consistent visual system.</strong>",
+        'about.m1.big': 'Mobile', 'about.m1.lbl': 'Apps & product flows',
+        'about.m2.big': 'Web', 'about.m2.lbl': 'Platforms & dashboards',
+        'tools.eyebrow': 'Tools I use',
+        'tool1.meta': 'UI / Prototype', 'tool2.meta': 'Flows / Wireframe', 'tool3.meta': 'Web / Motion',
+        'tool4.meta': 'Docs / Planning', 'tool5.meta': 'Assets / Edit',
+        'contact.title': "Let's build something useful.",
+        'contact.text': "Have a project or idea? I'm open to selected freelance and product design opportunities.",
+        'footer.copy': '© 2026 Rahmatulloh Madraximov — UX/UI Designer', 'footer.up': 'Back to top'
+      },
+      uz: {
+        'nav.works': 'Ishlar', 'nav.services': 'Xizmatlar', 'nav.process': 'Jarayon',
+        'nav.about': 'Men haqimda', 'nav.contact': "Bog'lanish", 'nav.cta': 'Suhbatlashamiz',
+        'hero.status': 'Loyihalarga ochiqman', 'hero.role': 'UX/UI Dizayner',
+        'hero.lead': "Men mobil ilovalar, veb-platformalar va raqamli mahsulotlar uchun toza va qulay interfeyslar dizayn qilaman.",
+        'hero.viewWorks': "Ishlarni ko'rish", 'hero.contactMe': "Bog'lanish",
+        'quick.ux.t': 'UX/UI Dizayn', 'quick.ux.d': 'Aniq tuzilma, foydali va izchil interfeyslar.',
+        'quick.mobile.t': 'Mobil Ilova', 'quick.mobile.d': 'iOS va Android mahsulotlari noldan ishga tushirishgacha.',
+        'quick.web.t': 'Veb Platforma', 'quick.web.d': "Moslashuvchan boshqaruv panellari va murakkab veb mahsulotlar.",
+        'quick.market.t': 'Marketpleys', 'quick.market.d': "Xaridor va sotuvchi uchun to'liq marketpleys tajribasi.",
+        'works.eyebrow': 'Tanlangan Ishlar', 'works.title': 'Tanlangan Ishlar',
+        'works.sub': "Mobil ilovalar, veb-platformalar va mahsulot dizayni loyihalari to'plami.",
+        'p1.type': 'Mobil Ilova Dizayni', 'p1.name': 'Loyiha 01', 'p1.desc': 'Silliq oqim va sodda navigatsiyaga qaratilgan toza mobil ilova interfeysi.',
+        'p2.type': 'Veb Platforma Dizayni', 'p2.name': 'Loyiha 02', 'p2.desc': 'Tuzilgan tartib va aniq ierarxiyaga ega moslashuvchan veb platforma.',
+        'p3.type': 'Marketpleys Dizayni', 'p3.name': 'Loyiha 03', 'p3.desc': 'Tez ko\u2018rish va oson xaridga mo\u2018ljallangan marketpleys tajribasi.',
+        'p4.type': 'Landing Sahifa Dizayni', 'p4.name': 'Loyiha 04', 'p4.desc': 'Dadil va minimal tartib bilan natija beradigan landing sahifa.',
+        'project.view': "Loyihani ko'rish",
+        'services.eyebrow': 'Men nima qilaman', 'services.title': 'Xizmatlar',
+        's1.t': 'Mobil Ilova Dizayni', 's1.d': 'Foydalanish oson bo\u2018lgan iOS va Android interfeyslari.',
+        's2.t': 'Veb Platforma Dizayni', 's2.d': 'Murakkab veb mahsulotlar uchun kengayuvchan interfeyslar.',
+        's3.t': 'Landing Sahifa Dizayni', 's3.d': 'Natija beradigan va hikoya qiladigan ta\u2018sirchan sahifalar.',
+        's4.t': 'Boshqaruv Paneli Dizayni', 's4.d': 'Ma\u2018lumotga boy, lekin aniq va o\u2018qilishi oson panellar.',
+        's5.t': 'Marketpleys UX/UI', 's5.d': 'Ishonch va konversiyaga moslangan xaridor-sotuvchi oqimlari.',
+        's6.t': 'UX Audit', 's6.d': 'Foydalanuvchiga xalal beradigan to\u2018siqlarni topib bartaraf etish.',
+        'process.eyebrow': 'Qanday ishlayman', 'process.title': 'Jarayon',
+        'step1.t': 'Tushunish', 'step1.d': 'Maqsad, foydalanuvchilar va mahsulot mantig\u2018i.',
+        'step2.t': 'Tuzilma', 'step2.d': 'Sahifalar, oqimlar va wireframelar.',
+        'step3.t': 'Dizayn', 'step3.d': 'UI ekranlar va komponentlar.',
+        'step4.t': 'Topshirish', 'step4.d': 'Prototip va dasturchiga tayyor fayllar.',
+        'about.eyebrow': 'Men haqimda',
+        'about.text': "Men <strong>toza, amaliy va foydalanuvchilarga qulay</strong> interfeyslar yaratishga qaratilgan UX/UI dizaynerman. Asosan mobil ilovalar, veb-platformalar va marketpleys mahsulotlari bilan ishlayman. Yondashuvim oddiy: <strong>aniq tuzilma, foydali dizayn va izchil vizual tizim.</strong>",
+        'about.m1.big': 'Mobil', 'about.m1.lbl': 'Ilovalar va mahsulot oqimlari',
+        'about.m2.big': 'Veb', 'about.m2.lbl': 'Platformalar va panellar',
+        'tools.eyebrow': 'Ishlatadigan vositalarim',
+        'tool1.meta': 'UI / Prototip', 'tool2.meta': 'Oqimlar / Wireframe', 'tool3.meta': 'Veb / Animatsiya',
+        'tool4.meta': 'Hujjatlar / Rejalashtirish', 'tool5.meta': 'Materiallar / Tahrir',
+        'contact.title': 'Keling, foydali narsa quramiz.',
+        'contact.text': "Loyiha yoki g\u2018oyangiz bormi? Men tanlangan frilans va mahsulot dizayni imkoniyatlariga ochiqman.",
+        'footer.copy': '© 2026 Rahmatulloh Madraximov — UX/UI Dizayner', 'footer.up': 'Yuqoriga qaytish'
+      }
+    };
+
+    function setLang(lang) {
+      if (!I18N[lang]) lang = 'en';
+      document.documentElement.lang = lang;
+      const dict = I18N[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = dict[el.getAttribute('data-i18n')];
+        if (v == null) return;
+        if (el.hasAttribute('data-i18n-html')) el.innerHTML = v; else el.textContent = v;
+      });
+      document.querySelectorAll('#lang button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+      try { localStorage.setItem('rm_lang', lang); } catch (e) {}
+    }
+    let savedLang = 'en';
+    try { if (localStorage.getItem('rm_lang') === 'uz') savedLang = 'uz'; } catch (e) {}
+    setLang(savedLang);
+    document.querySelectorAll('#lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+  </script>
+  <template id="__bundler_thumbnail" data-bg-color="#07070b">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1200" height="800" fill="#07070b"/>
+      <circle cx="240" cy="160" r="260" fill="#6d3bd1" opacity="0.35"/>
+      <text x="600" y="450" font-family="Archivo, sans-serif" font-weight="900" font-size="240" fill="#ededf2" text-anchor="middle">R<tspan fill="#9b7bff">M</tspan></text>
+    </svg>
+  </template>
+</body>
+</html>
