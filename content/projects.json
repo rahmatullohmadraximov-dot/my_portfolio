@@ -1,3 +1,25 @@
 {
-  "projects": []
+  "projects": [
+    {
+      "num": "1",
+      "short_uz": "Sotuv, HR va moliyani bitta operatsion markazda birlashtiruvchi to'liq ERP platforma.",
+      "description_uz": "Robbit — har bir bo'lim uchun, ya'ni omborni nazorat qilishdan moliyaviy hisobotgacha bo'lgan ishlarda operatorlarga bitta izchil interfeys beradigan korxona resurslarini boshqarish tizimi. Men butun mahsulot dizaynini olib bordim: axborot arxitekturasi, boshqaruv panellari, ma'lumotga boy jadvallar, formalar va hisobot qatlamlari. Asosiy e'tibor operatsion aniqlik, murakkab ma'lumotlarni tez o'qish va o'nlab ish jarayonlarini vizual izchillikni saqlab qo'llab-quvvatlaydigan kengayuvchan dizayn tizimiga qaratildi.",
+      "short_en": "End-to-end ERP platform that unifies inventory, sales, HR, and finance into one operational hub.",
+      "description_en": "Robbit is an enterprise resource planning system designed to give operators a single, consistent interface across every department — from warehouse tracking to financial reporting. I led the full product design: information architecture, dashboards, data-dense tables, forms, and the reporting layer. The focus was on operational clarity, fast scanning of complex data, and a scalable design system that handles dozens of distinct workflows without losing visual coherence.",
+      "published": true,
+      "cover": "/images/uploads/robbit.png",
+      "images": [
+        {
+          "src": "/images/uploads/robbit.png"
+        }
+      ],
+      "name_uz": "Robbit mobil ilovasi",
+      "type": "Landing Page",
+      "tools": [
+        "Figma"
+      ],
+      "year": "2025",
+      "name_en": "Robbit mobile app"
+    }
+  ]
 }
